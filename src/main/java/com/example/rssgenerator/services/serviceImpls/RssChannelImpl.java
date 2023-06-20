@@ -11,6 +11,8 @@ import com.rometools.rome.feed.rss.Item;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,6 +35,15 @@ public class RssChannelImpl implements RssChannelService {
         channel.setGenerator(rssFeed.getGenerator());
         channel.setDescription(rssFeed.getDescription());
         channel.setUri(rssFeed.getUrl());
+        Namespace atomNamespace = Namespace.getNamespace("atom", "http://www.w3.org/2005/Atom");
+        channel.getModules().add(ModuleUtils.getModule(null,"http://www.w3.org/2005/Atom"));
+
+        // Insert atom:link to your feed in the channel section
+        Element atomLink = new Element("link", atomNamespace);
+        atomLink.setAttribute("href", "https://rssproj.onrender.com/rss/1");
+        atomLink.setAttribute("rel", "self");
+        atomLink.setAttribute("type", "application/rss+xml");
+        channel.getForeignMarkup().add(atomLink);
         Iterable<RssItem>rssItemIterable = rssItemRepo.findTop10ByFeedId(feedId) ; // returns last 10 items in feed
         List<Item>itemList = new ArrayList<>() ;
 
