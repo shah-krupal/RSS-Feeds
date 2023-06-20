@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
+import com.rometools.rome.feed.module.impl.ModuleUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
