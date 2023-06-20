@@ -6,9 +6,13 @@ import com.example.rssgenerator.models.Stats;
 import com.example.rssgenerator.repositories.RssFeedRepo;
 import com.example.rssgenerator.repositories.RssItemRepo;
 import com.example.rssgenerator.services.RssItemService;
+import com.rometools.rome.feed.module.impl.ModuleUtils;
 import com.rometools.rome.feed.rss.Channel;
 import com.rometools.rome.feed.rss.Description;
+import com.rometools.rome.feed.rss.Guid;
 import com.rometools.rome.feed.rss.Item;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -24,9 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class RssItemServiceImpl implements RssItemService {
@@ -72,13 +78,17 @@ public class RssItemServiceImpl implements RssItemService {
     @Override
     public Item convertToItem(RssItem rssItem) {
         Item item = new Item() ;   // ROME RSS item
-        item.setAuthor(rssItem.getCreator());
+        item.setAuthor(rssItem.getCreator()) ;
         item.setTitle(rssItem.getTitle());
         Description description = new Description();
         description.setType("text/plain");
         description.setValue(rssItem.getDescription());
         item.setDescription(description);
         item.setPubDate(rssItem.getPubDate());
+        Guid guid = new Guid();
+        guid.setValue("https://permalink.com");
+        guid.setPermaLink(false); // Set to true if the GUID is a permalink
+        item.setGuid(guid);
 
         Query query = new Query() ;
         query.addCriteria(Criteria.where("feedId").is(rssItem.getFeedId())) ;
@@ -97,6 +107,16 @@ public class RssItemServiceImpl implements RssItemService {
     public Channel convertToFeed(Item item, RssItem rssItem) {
         Channel channel = new Channel() ;
         channel.setFeedType("rss_2.0");
+        Namespace atomNamespace = Namespace.getNamespace("atom", "http://www.w3.org/2005/Atom");
+        channel.getModules().add(ModuleUtils.getModule(null,"http://www.w3.org/2005/Atom"));
+
+        // Insert atom:link to your feed in the channel section
+        Element atomLink = new Element("link", atomNamespace);
+        atomLink.setAttribute("href", "https://rssproj.onrender.com/rss/1");
+        atomLink.setAttribute("rel", "self");
+        atomLink.setAttribute("type", "application/rss+xml");
+        channel.getForeignMarkup().add(atomLink);
+
         RssFeed rssFeed = rssFeedRepo.findByFeedId(rssItem.getFeedId()) ;
         channel.setTitle(rssFeed.getTitle());
         channel.setGenerator(rssFeed.getGenerator());
