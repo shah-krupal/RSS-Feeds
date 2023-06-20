@@ -86,7 +86,7 @@ public class RssItemServiceImpl implements RssItemService {
         item.setDescription(description);
         item.setPubDate(rssItem.getPubDate());
         Guid guid = new Guid();
-        guid.setValue("https://permalink.com"+Integer.toString(rssItem.getItemId);
+        guid.setValue("https://permalink.com"+Integer.toString(rssItem.getItemId()));
         guid.setPermaLink(false); // Set to true if the GUID is a permalink
         item.setGuid(guid);
 
